@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "command_reader.h"
 #include "external_command_executor.h"
 #include "history.h"
@@ -13,6 +14,10 @@ int main(void) {
 
     while (1) {
         command = read_command();
+
+        if (strcmp(command, "\\q") == 0) {
+            exit(EXIT_SUCCESS);
+        }
 
         if (*command) {
             add_command_to_file(command);
