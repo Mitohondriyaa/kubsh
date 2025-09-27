@@ -4,6 +4,8 @@
 #include "command_reader.h"
 #include "external_command_executor.h"
 #include "history.h"
+#include "command_parser.h"
+#include "command_executor.h"
 
 int main(void) {
     setbuf(stdout, NULL);
@@ -11,6 +13,7 @@ int main(void) {
     load_commands_from_file();
 
     char* command = NULL;
+    char** parsed_command = NULL;
 
     while (1) {
         command = read_command();
@@ -25,12 +28,15 @@ int main(void) {
             CommandStatus status = execute_external_command(command);
 
             if (status == CMD_UNKNOWN) {
-                fprintf(stderr, "\033[1;31mUnknown command: %s\n\033[0m", command);
+                parsed_command = parse_command(command);
+                execute_command(parsed_command);
+
+                free(parsed_command);
             }
         }
-    }
 
-    free(command);
+        free(command);
+    }
 
     return EXIT_SUCCESS;
 }
