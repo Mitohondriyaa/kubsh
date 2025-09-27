@@ -3,7 +3,7 @@
 #include "external_command_executor.h"
 
 void execute_external_command(char* command) {
-    if (strcmp(command, "\\q\n") == 0) {
+    if (strcmp(command, "\\q") == 0) {
         exit(EXIT_SUCCESS);
     }
 }

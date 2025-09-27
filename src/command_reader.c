@@ -1,20 +1,19 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <readline/readline.h>
+#include <readline/history.h>
 #include "command_reader.h"
 
 char* read_command(void) {
-    char* buffer = NULL;
-    size_t buffer_size = 0;
+    char* command = readline("\033[1;34mKubSH> \033[0m");
 
-    if (getline(&buffer, &buffer_size, stdin) == -1) {
-        if (feof(stdin)) {
-            printf("\n");
-            exit(EXIT_SUCCESS);
-        }
-
-        fprintf(stderr, "\033[1;31mStdin error\033[0m");
-        exit(EXIT_FAILURE);
+    if (!command) {
+        exit(EXIT_SUCCESS);
     }
 
-    return buffer;
+    if (*command) {
+        add_history(command);
+    }
+
+    return command;
 }

@@ -9,13 +9,13 @@ int main(void) {
     char* command = NULL;
 
     while (1) {
-        printf("\033[1;34mKubSH> \033[0m");
-
         command = read_command();
 
-        execute_external_command(command);
+        if (*command) {
+            execute_external_command(command);
 
-        printf("%s", command);
+            printf("%s\n", command);
+        }
 
         free(command);
     }
