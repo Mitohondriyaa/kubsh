@@ -12,5 +12,35 @@ CommandStatus execute_external_command(char* command) {
         return CMD_OK;
     }
 
+    if (strncmp(command, "\\e $", 4) == 0) {
+        char* var = command + 4;
+
+        if (strlen(var) == 0) {
+            fprintf(stderr, "\033[1;31mEnvironment variable is empty\n\033[0m");
+
+            return CMD_ERROR;
+        }
+
+        char* value = getenv(var);
+
+        if (!value) {
+            fprintf(stderr, "\033[1;31mEnvironment variable does not exist\033[0m\n");
+            
+            return CMD_ERROR;
+        }
+
+        char* copy = strdup(value);
+        char* token = strtok(copy, ":");
+
+        while (token) {
+            printf("%s\n", token);
+            token = strtok(NULL, ":");
+        }
+
+        free(copy);
+
+        return CMD_OK;
+    }
+
     return CMD_UNKNOWN;
 }
