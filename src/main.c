@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "command_reader.h"
+#include "external_command_executor.h"
 
 int main(void) {
     setbuf(stdout, NULL);
@@ -11,6 +12,8 @@ int main(void) {
         printf("\033[1;34mKubSH> \033[0m");
 
         command = read_command();
+
+        execute_external_command(command);
 
         printf("%s", command);
 
