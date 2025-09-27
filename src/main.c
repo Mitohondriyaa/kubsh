@@ -7,13 +7,15 @@ int main(void) {
 
     char* command = NULL;
 
-    printf("\033[1;34mKubSH> \033[0m");
+    while (1) {
+        printf("\033[1;34mKubSH> \033[0m");
 
-    command = read_command();
+        command = read_command();
 
-    printf("%s", command);
+        printf("%s", command);
 
-    free(command);
+        free(command);
+    }
 
     return EXIT_SUCCESS;
 }
