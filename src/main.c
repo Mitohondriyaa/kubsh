@@ -18,8 +18,6 @@ int main(void) {
             add_command_to_file(command);
 
             execute_external_command(command);
-
-            printf("%s\n", command);
         }
     }
 
