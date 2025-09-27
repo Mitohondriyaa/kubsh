@@ -22,7 +22,11 @@ int main(void) {
         if (*command) {
             add_command_to_file(command);
 
-            execute_external_command(command);
+            CommandStatus status = execute_external_command(command);
+
+            if (status == CMD_UNKNOWN) {
+                fprintf(stderr, "\033[1;31mUnknown command: %s\n\033[0m", command);
+            }
         }
     }
 
