@@ -1,13 +1,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <signal.h>
 #include "command_reader.h"
 #include "external_command_executor.h"
 #include "history.h"
 #include "command_parser.h"
 #include "command_executor.h"
+#include "signal_handler.h"
 
 int main(void) {
+    signal(SIGHUP, handle_sighup);
     setbuf(stdout, NULL);
     init_history_buffer();
     load_commands_from_file();
