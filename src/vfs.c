@@ -1,6 +1,3 @@
-#define FUSE_USE_VERSION 34
-
-#include <fuse3/fuse.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
@@ -87,3 +84,7 @@ int users_getattr(const char* path, struct stat* st, struct fuse_file_info* fi) 
 
     return -ENOENT;
 }
+
+struct fuse_operations users_operations = {
+    .getattr = users_getattr
+};
