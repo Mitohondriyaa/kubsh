@@ -8,6 +8,7 @@
 #include "command_parser.h"
 #include "command_executor.h"
 #include "signal_handler.h"
+#include "vfs_manager.h"
 
 int main(void) {
     signal(SIGHUP, handle_sighup);
@@ -15,6 +16,7 @@ int main(void) {
     init_history_buffer();
     load_commands_from_file();
 
+    char* mountpoint = init_mountpoint();
     char* command = NULL;
     char** parsed_command = NULL;
 
