@@ -15,8 +15,8 @@ int main(void) {
     setbuf(stdout, NULL);
     init_history_buffer();
     load_commands_from_file();
+    fuse_start();
 
-    char* mountpoint = init_mountpoint();
     char* command = NULL;
     char** parsed_command = NULL;
 

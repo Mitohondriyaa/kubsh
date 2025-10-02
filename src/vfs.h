@@ -1,7 +1,7 @@
 #ifndef VFS_H
 #define VFS_H
 
-#define FUSE_USE_VERSION 34
+#define FUSE_USE_VERSION 35
 
 #include <fuse3/fuse.h>
 
