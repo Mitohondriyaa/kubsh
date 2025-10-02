@@ -1,17 +1,33 @@
 #include <stdio.h>
 #include <unistd.h>
+#include <stdlib.h>
 #include <string.h>
 #include <pwd.h>
+#include <sys/types.h>
 #include <errno.h>
 #include "vfs.h"
 
 int can_login(struct passwd* pwd) {
-    return pwd
-           && pwd->pw_shell
-           && strlen(pwd->pw_shell) > 0
-           && strcmp(pwd->pw_shell, "/bin/false") != 0
-           && strcmp(pwd->pw_shell, "/usr/sbin/nologin") != 0
-           && strcmp(pwd->pw_shell, "/sbin/nologin") != 0;
+    FILE* shells = fopen("/etc/shells", "r");
+
+    if (!shells) {
+        fprintf(stderr, "\033[1;31mCritical filesystem error\033[0m");
+        exit(EXIT_FAILURE);
+    }
+
+    char line[256];
+
+    while (fgets(line, sizeof(line), shells)) {
+        line[strcspn(line, "\n")] = '\0';
+
+        if (strcmp(line, pwd->pw_shell) == 0) {
+            fclose(shells);
+            return 1;
+        }
+    }
+
+    fclose(shells);
+    return 0;
 }
 
 int users_getattr(const char* path, struct stat* st, struct fuse_file_info* fi) {
@@ -64,6 +80,8 @@ int users_getattr(const char* path, struct stat* st, struct fuse_file_info* fi) 
                 return 0;
             }
         }
+        
+        return -ENOENT;
     }
 
     if (sscanf(path, "/%255[^/]", username) == 1) {
@@ -85,6 +103,49 @@ int users_getattr(const char* path, struct stat* st, struct fuse_file_info* fi) 
     return -ENOENT;
 }
 
+int users_readdir(
+    const char* path,
+    void* buf, 
+    fuse_fill_dir_t filler, 
+    off_t offset, 
+    struct fuse_file_info* fi, 
+    enum fuse_readdir_flags flags
+) {
+    (void) offset;
+    (void) fi;
+    (void) flags;
+
+    filler(buf, ".", NULL, 0, 0);
+    filler(buf, "..", NULL, 0, 0);
+
+    if (strcmp(path, "/") == 0) {
+        struct passwd* pwd;
+        setpwent();
+
+        while ((pwd = getpwent()) != NULL) {
+            if (can_login(pwd)) {
+                filler(buf, pwd->pw_name, NULL, 0, 0);
+            }
+        }
+
+        endpwent();
+        return 0;
+    }
+
+    char username[256];
+
+    if (sscanf(path, "/%255[^/]", username) == 1) {
+        filler(buf, "id", NULL, 0, 0);
+        filler(buf, "home", NULL, 0, 0);
+        filler(buf, "shell", NULL, 0, 0);
+        
+        return 0;
+    }
+
+    return -ENOENT;
+}
+
 struct fuse_operations users_operations = {
-    .getattr = users_getattr
+    .getattr = users_getattr,
+    .readdir = users_readdir
 };
