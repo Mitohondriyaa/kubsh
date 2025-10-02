@@ -5,6 +5,7 @@
 #include <pwd.h>
 #include <sys/types.h>
 #include <errno.h>
+#include <time.h>
 #include "vfs.h"
 
 int can_login(struct passwd* pwd) {
@@ -33,6 +34,8 @@ int can_login(struct passwd* pwd) {
 int users_getattr(const char* path, struct stat* st, struct fuse_file_info* fi) {
     (void) fi;
 
+    time_t now = time(NULL);
+
     memset(st, 0, sizeof(struct stat));
 
     if (strcmp(path, "/") == 0) {
@@ -43,6 +46,9 @@ int users_getattr(const char* path, struct stat* st, struct fuse_file_info* fi) 
         st->st_size = 4096;
         st->st_blksize = 4096;
         st->st_blocks = 8;
+        st->st_atime = now;
+        st->st_mtime = now;
+        st->st_ctime = now;
 
         return 0;
     }
@@ -51,27 +57,30 @@ int users_getattr(const char* path, struct stat* st, struct fuse_file_info* fi) 
     char filename[256];
 
     if (sscanf(path, "/%255[^/]/%255[^/]", username, filename) == 2) {
-        struct passwd* pwd = getpwnam(username);
+        if (
+            strcmp(filename, "id") == 0
+            || strcmp(filename, "home") == 0
+            || strcmp(filename, "shell") == 0
+        ) {
+            struct passwd* pwd = getpwnam(username);
 
-        if (pwd && can_login(pwd)) {
-            if (
-                strcmp(filename, "id") == 0
-                || strcmp(filename, "home") == 0
-                || strcmp(filename, "shell") == 0
-            ) {
+            if (pwd && can_login(pwd)) {
                 st->st_mode = __S_IFREG | 0644;
                 st->st_nlink = 1;
                 st->st_uid = pwd->pw_uid;
                 st->st_gid = pwd->pw_gid;
+                st->st_atime = now;
+                st->st_mtime = now;
+                st->st_ctime = now;
 
                 if (strcmp(filename, "id") == 0) {
-                    st->st_size = snprintf(NULL, 0, "%d", pwd->pw_uid);
+                    st->st_size = snprintf(NULL, 0, "%d", pwd->pw_uid) + 1;
                 }
                 else if (strcmp(filename, "home") == 0) {
-                    st->st_size = strlen(pwd->pw_dir);
+                    st->st_size = strlen(pwd->pw_dir) + 1;
                 }
                 else {
-                    st->st_size = strlen(pwd->pw_shell);
+                    st->st_size = strlen(pwd->pw_shell) + 1;
                 }
 
                 st->st_blksize = 4096;
@@ -132,20 +141,61 @@ int users_readdir(
         return 0;
     }
 
-    char username[256];
+    filler(buf, "id", NULL, 0, 0);
+    filler(buf, "home", NULL, 0, 0);
+    filler(buf, "shell", NULL, 0, 0);
+    
+    return 0;
+}
 
-    if (sscanf(path, "/%255[^/]", username) == 1) {
-        filler(buf, "id", NULL, 0, 0);
-        filler(buf, "home", NULL, 0, 0);
-        filler(buf, "shell", NULL, 0, 0);
-        
+int users_read(
+    const char* path,
+    char* buf, 
+    size_t size, 
+    off_t offset, 
+    struct fuse_file_info* fi
+) {
+    (void) fi;
+
+    char username[256];
+    char filename[256];
+
+    sscanf(path, "/%255[^/]/%255[^/]", username, filename);
+
+    struct passwd* pwd = getpwnam(username);
+    char* content = NULL;
+    char tmp[256];
+
+    if (strcmp(filename, "id") == 0) {
+        snprintf(tmp, sizeof(tmp), "%d\n", pwd->pw_uid);
+        content = tmp;
+    }
+    else if (strcmp(filename, "home") == 0) {
+        snprintf(tmp, sizeof(tmp), "%s\n", pwd->pw_dir);
+        content = tmp;
+    }
+    else {
+        snprintf(tmp, sizeof(tmp), "%s\n", pwd->pw_shell);
+        content = tmp;
+    }
+
+    size_t len = strlen(content);
+
+    if (offset >= len) {
         return 0;
     }
 
-    return -ENOENT;
+    if (offset + size > len) {
+        size = len - offset;
+    }
+
+    memcpy(buf, content + offset, size);
+
+    return size;
 }
 
 struct fuse_operations users_operations = {
     .getattr = users_getattr,
-    .readdir = users_readdir
+    .readdir = users_readdir,
+    .read = users_read
 };
