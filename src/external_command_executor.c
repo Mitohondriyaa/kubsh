@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include "external_command_executor.h"
 #include "disk_parser.h"
 
@@ -79,6 +80,22 @@ CommandStatus execute_external_command(char* command) {
         free(disk);
 
         return status;
+    }
+
+    if (strncmp(command, "cd", 2) == 0) {
+        if (*(command + 2) == ' ' && *(command + 3) != '\0') {
+            if (chdir(command + 3) != 0) {
+                fprintf(stderr, "\033[1;31mDirectory is not found\n\033[0m");
+
+                return CMD_ERROR;
+            }
+
+            return CMD_OK;
+        }
+        
+        fprintf(stderr, "\033[1;31mDirectory is not selected\n\033[0m");
+
+        return CMD_ERROR;
     }
 
     return CMD_UNKNOWN;
