@@ -9,6 +9,7 @@
 #include "command_executor.h"
 #include "signal_handler.h"
 #include "vfs_manager.h"
+#include "utils.h"
 
 int main(void) {
     signal(SIGHUP, handle_sighup);
@@ -22,6 +23,7 @@ int main(void) {
 
     while (1) {
         command = read_command();
+        expand_tilde_in_command(&command);
 
         if (strcmp(command, "\\q") == 0) {
             exit(EXIT_SUCCESS);
