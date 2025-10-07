@@ -227,9 +227,45 @@ int users_mkdir(const char* path, mode_t mode) {
     return -EINVAL;
 }
 
+int users_rmdir(const char* path) {
+    char username[256];
+
+    if (sscanf(path, "/%255[^/]", username) == 1) {
+        if (strchr(path + 1, '/') == NULL) {
+            struct passwd* pwd= getpwnam(username);
+
+            if (pwd != NULL) {
+                char* userdel_command[] = {
+                    "userdel",
+                    "--remove",
+                    username,
+                    NULL
+                };
+
+                execute_command(userdel_command);
+
+                pwd = getpwnam(username);
+
+                if (pwd == NULL) {
+                    return 0;
+                }
+
+                return -EIO;
+            }
+
+            return -ENOENT;
+        }
+        
+        return -EPERM;
+    }
+
+    return -EPERM;
+}
+
 struct fuse_operations users_operations = {
     .getattr = users_getattr,
     .readdir = users_readdir,
     .read = users_read,
-    .mkdir = users_mkdir
+    .mkdir = users_mkdir,
+    .rmdir = users_rmdir
 };
