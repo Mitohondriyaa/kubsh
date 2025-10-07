@@ -7,6 +7,7 @@
 #include <errno.h>
 #include <time.h>
 #include "vfs.h"
+#include "command_executor.h"
 
 int can_login(struct passwd* pwd) {
     FILE* shells = fopen("/etc/shells", "r");
@@ -194,8 +195,41 @@ int users_read(
     return size;
 }
 
+int users_mkdir(const char* path, mode_t mode) {
+    (void) mode;
+
+    char username[256];
+
+    if (sscanf(path, "/%255[^/]", username) == 1) {
+        struct passwd* pwd = getpwnam(username);
+        
+        if (pwd != NULL) {
+            return -EEXIST;
+        }
+
+        char* adduser_command[] = {
+            "sudo",
+            "adduser",
+            "--disabled-password",
+            "--gecos",
+            "",
+            username,
+            NULL
+        };
+
+        execute_command(adduser_command);
+
+        pwd = getpwnam(username);
+
+        return (pwd != NULL) ? 0 : -EIO;
+    }
+
+    return -EINVAL;
+}
+
 struct fuse_operations users_operations = {
     .getattr = users_getattr,
     .readdir = users_readdir,
-    .read = users_read
+    .read = users_read,
+    .mkdir = users_mkdir
 };
