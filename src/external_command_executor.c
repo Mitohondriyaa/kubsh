@@ -6,8 +6,8 @@
 #include "disk_parser.h"
 
 CommandStatus execute_external_command(char* command) {
-    if (strncmp(command, "echo", 4) == 0 && (command[4] == ' ' || command[4] == '\0')) {
-        char* to_print = command[4] == ' ' ? command + 5 : "";
+    if (strncmp(command, "debug", 5) == 0 && (command[5] == ' ' || command[5] == '\0')) {
+        char* to_print = command[5] == ' ' ? command + 6 : "";
 
         if (to_print[0] == '\'' && to_print[strlen(to_print) - 1] == '\'') {
             to_print[strlen(to_print) - 1] = '\0';

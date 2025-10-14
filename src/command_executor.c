@@ -11,7 +11,7 @@ void execute_command(char** parsed_command) {
     if (pid == 0) {
         execvp(parsed_command[0], parsed_command);
 
-        fprintf(stderr, "\033[1;31mCommand not found: %s\033[0m\n", parsed_command[0]);
+        fprintf(stdout, "%s: command not found\n", parsed_command[0]);
         
         exit(EXIT_FAILURE);
     }

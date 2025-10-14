@@ -49,7 +49,7 @@ void* fuse_thread_function(void* arg) {
 
     struct fuse* fuse_instance = fuse_new(&args, &users_operations, sizeof(users_operations), NULL);
 
-    fuse_mount(fuse_instance, init_mountpoint());
+    fuse_mount(fuse_instance, "/opt/users");
 
     fuse_loop(fuse_instance);
 

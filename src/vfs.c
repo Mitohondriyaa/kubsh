@@ -208,7 +208,6 @@ int users_mkdir(const char* path, mode_t mode) {
         }
 
         char* adduser_command[] = {
-            "sudo",
             "adduser",
             "--disabled-password",
             "--gecos",
