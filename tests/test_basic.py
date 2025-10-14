@@ -20,7 +20,7 @@ def test_exit(kubsh):
 
 def test_echo(kubsh):
     random_input = random_string()
-    stdout, stderr = kubsh.communicate(input=f"echo '{random_input}'\n")
+    stdout, stderr = kubsh.communicate(input=f"debug '{random_input}'\n")
     debug(stdout, stderr)
 
     lines = stdout.splitlines()

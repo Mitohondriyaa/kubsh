@@ -1,6 +1,2 @@
-/CMakeLists.txt
-
-/build/*
+/build/
 /.vscode/
-
-!/build/kubsh

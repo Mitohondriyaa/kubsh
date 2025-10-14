@@ -10,7 +10,7 @@ CHECKS = {
 def check_user(vfs, user):
     for prop, field in CHECKS.items():
         with open(vfs / user[0] / prop) as f:
-            assert user[field] == f.read()
+            assert user[field] == f.read().strip()
 
 
 def test_vfs_users(kubsh, users, vfs):

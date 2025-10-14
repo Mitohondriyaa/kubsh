@@ -1,0 +1,8 @@
+cmake_minimum_required(VERSION 3.10)
+project(KubSH C)
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -g")
+file(GLOB SOURCES "src/*.c")
+add_executable(kubsh ${SOURCES})
+target_link_libraries(kubsh PRIVATE readline)
+target_link_libraries(kubsh PRIVATE fuse3)
