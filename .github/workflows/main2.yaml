@@ -1,0 +1,39 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ master ]
+  workflow_dispatch:
+ 
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Docker container
+        run: | 
+          docker run -v $(pwd)/kubsh.deb:/mnt/kubsh.deb -d --name kubsh-test \
+          --device /dev/fuse --cap-add SYS_ADMIN \
+          --security-opt apparmor:unconfined \
+          tyvik/kubsh_test:master tail -f /dev/null
+
+          docker exec kubsh-test bash -c "
+          apt update
+          apt install -y fuse3 adduser
+          ln -sf /usr/lib/x86_64-linux-gnu/libfuse3.so /usr/lib/x86_64-linux-gnu/libfuse3.so.3
+          "
+
+      - name: Run tests in container
+        run: |
+          docker exec kubsh-test bash -c "
+            cd /opt && ./check.sh
+          "
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: kubsh-package
+          path: kubsh.deb

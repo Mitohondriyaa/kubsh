@@ -1,4 +1,4 @@
-all: build run package
+all: build package
 
 build:
 	cmake -B build .

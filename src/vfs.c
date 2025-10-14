@@ -75,13 +75,13 @@ int users_getattr(const char* path, struct stat* st, struct fuse_file_info* fi) 
                 st->st_ctime = now;
 
                 if (strcmp(filename, "id") == 0) {
-                    st->st_size = snprintf(NULL, 0, "%d", pwd->pw_uid) + 1;
+                    st->st_size = snprintf(NULL, 0, "%d", pwd->pw_uid);
                 }
                 else if (strcmp(filename, "home") == 0) {
-                    st->st_size = strlen(pwd->pw_dir) + 1;
+                    st->st_size = strlen(pwd->pw_dir);
                 }
                 else {
-                    st->st_size = strlen(pwd->pw_shell) + 1;
+                    st->st_size = strlen(pwd->pw_shell);
                 }
 
                 st->st_blksize = 4096;
@@ -149,13 +149,7 @@ int users_readdir(
     return 0;
 }
 
-int users_read(
-    const char* path,
-    char* buf, 
-    size_t size, 
-    off_t offset, 
-    struct fuse_file_info* fi
-) {
+int users_read(const char* path, char* buf, size_t size, off_t offset, struct fuse_file_info* fi) {
     (void) fi;
 
     char username[256];
@@ -164,23 +158,25 @@ int users_read(
     sscanf(path, "/%255[^/]/%255[^/]", username, filename);
 
     struct passwd* pwd = getpwnam(username);
-    char* content = NULL;
-    char tmp[256];
+    
+    char content[256];
+    content[0] = '\0';
 
     if (strcmp(filename, "id") == 0) {
-        snprintf(tmp, sizeof(tmp), "%d\n", pwd->pw_uid);
-        content = tmp;
+        snprintf(content, sizeof(content), "%d", pwd->pw_uid);
     }
     else if (strcmp(filename, "home") == 0) {
-        snprintf(tmp, sizeof(tmp), "%s\n", pwd->pw_dir);
-        content = tmp;
+        snprintf(content, sizeof(content), "%s", pwd->pw_dir);
     }
     else {
-        snprintf(tmp, sizeof(tmp), "%s\n", pwd->pw_shell);
-        content = tmp;
+        snprintf(content, sizeof(content), "%s", pwd->pw_shell);
     }
 
     size_t len = strlen(content);
+    if (len > 0 && content[len-1] == '\n') {
+        content[len-1] = '\0';
+        len--;
+    }
 
     if (offset >= len) {
         return 0;
